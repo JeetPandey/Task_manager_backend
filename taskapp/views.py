@@ -4,6 +4,7 @@ from .serializers import TaskSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.core.paginator import Paginator
 from django.db.models import Q
 
 # Create your views here.
@@ -11,11 +12,11 @@ from django.db.models import Q
 
 class TaskListCreateAPIView(APIView):
     def get(self,request):
-        tasks = Task.objects.order_by('position')
-        search = request.Get.get("search")
-        status_filter = request.Get.get("status")
-        priority_filter = request.Get.get("priority")
-        sort = request.Get.get("sort")
+        tasks = Task.objects.all().order_by('position')
+        search = request.GET.get("search")
+        status_filter = request.GET.get("status")
+        priority_filter = request.GET.get("priority")
+        sort = request.GET.get("sort")
 
         if search:
             tasks = tasks.filter(
@@ -23,7 +24,7 @@ class TaskListCreateAPIView(APIView):
 
                 |
 
-                Q(name__icontains = search)
+                Q(code__icontains = search)
             )
         
         if status_filter:
@@ -38,18 +39,35 @@ class TaskListCreateAPIView(APIView):
             tasks = tasks.order_by(
                 'due_date'
             )
-        serializer = TaskSerializer(tasks,many=True)
+        page_number = request.GET.get('page',1)
+        paginator = Paginator(tasks,10)
+        page_obj = paginator.get_page(page_number)
+        
+        serializer = TaskSerializer(page_obj,many=True)
         print(serializer)
-        return Response(serializer.data)
+        return Response({
+
+        "total_pages": paginator.num_pages,
+
+        "current_page": page_obj.number,
+
+        "total_tasks": paginator.count,
+
+        "results": serializer.data
+        })
+
+
+    
     
     def post(self,request):
         serializer = TaskSerializer(data=request.data)
         
         if serializer.is_valid():
             print(serializer.initial_data)
-            print(serializer.data)
+            
             print(serializer.validated_data)
             serializer.save()
+            print(serializer.data)
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
