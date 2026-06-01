@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Task,Comment
-from .serializers import TaskSerializer
+from .serializers import TaskSerializer,CommentSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -194,5 +194,157 @@ class TaskStatusAPIView(APIView):
 
                 "status":
                 task.status
+            }
+        )
+    
+
+class CommentListCreateAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request):
+        if not request.user.is_staff:
+
+            return Response(
+                {
+                    "error": "Admin only"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        comments = Comment.objects.select_related(
+            'user',
+            'task'
+        )
+
+        serializer = CommentSerializer(
+            comments,
+            many=True
+        )
+
+        return Response(
+            serializer.data
+        )
+
+    def post(self, request):
+
+        serializer = CommentSerializer(
+            data=request.data
+        )
+
+        if serializer.is_valid():
+
+            serializer.save(
+                user=request.user
+            )
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+
+class TaskCommentAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request, task_id):
+
+        comments = Comment.objects.filter(
+            task_id=task_id
+        ).select_related(
+            'user'
+        ).order_by(
+            '-created_at'
+        )
+
+        serializer = CommentSerializer(
+            comments,
+            many=True
+        )
+
+        return Response(
+            serializer.data
+        )
+    
+
+class CommentDetailAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get_object(self, pk):
+
+        try:
+
+            return Comment.objects.get(
+                pk=pk
+            )
+
+        except Comment.DoesNotExist:
+
+            return None
+        
+    def get(self, request, pk):
+
+        comment = self.get_object(pk)
+
+        if not comment:
+
+            return Response(
+                {
+                    "error":
+                    "Comment not found"
+                },
+                status=404
+            )
+
+        serializer = CommentSerializer(
+            comment
+        )
+
+        return Response(
+            serializer.data
+        )
+    def delete(self, request, pk):
+
+        if not request.user.is_staff:
+
+            return Response(
+                {
+                    "error":
+                    "Only admin can delete comments"
+                },
+                status=403
+            )
+
+        comment = self.get_object(pk)
+
+        if not comment:
+
+            return Response(
+                {
+                    "error":
+                    "Comment not found"
+                },
+                status=404
+            )
+
+        comment.delete()
+
+        return Response(
+            {
+                "message":
+                "Comment deleted"
             }
         )
