@@ -348,3 +348,29 @@ class CommentDetailAPIView(APIView):
                 "Comment deleted"
             }
         )
+    
+class TaskReorderAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def patch(self, request):
+        if not request.user.is_staff:
+            return Response(
+                {
+                    "error":
+                    "Only admin can reorder tasks"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+        task = request.data
+        for item in task:
+            task = Task.objects.filter(id=item['id']).first()
+            if task:
+                task.position = item['position']
+                task.save()
+        return Response({
+                "message":
+                "Order updated successfully"
+            })
