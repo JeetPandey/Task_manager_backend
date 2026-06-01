@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import TaskListCreateAPIView,TaskDetailAPIView
-from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView,TestAPIView
+from .views import TaskListCreateAPIView,TaskDetailAPIView,TestAPIView,TaskStatusAPIView
+from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 
 urlpatterns = [
     path("tasks/",TaskListCreateAPIView.as_view(),name='task-list'),
@@ -8,5 +8,7 @@ urlpatterns = [
     path("login/",TokenObtainPairView.as_view(),name='login'),
     path("refresh/",TokenRefreshView.as_view(),name='token-refresh'),
     #A temp test url for test view
-    path("test/",TestAPIView.as_view(),name = 'test')
+    path("test/",TestAPIView.as_view(),name = 'test'),
+
+    path('tasks/<int:pk>/status/',TaskStatusAPIView.as_view(),name='task-status'),
 ]

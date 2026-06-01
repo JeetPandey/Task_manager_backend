@@ -4,6 +4,7 @@ from .serializers import TaskSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.core.paginator import Paginator
 from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 
 
 class TaskListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self,request):
         tasks = Task.objects.all().order_by('position')
         search = request.GET.get("search")
@@ -61,6 +63,11 @@ class TaskListCreateAPIView(APIView):
     
     
     def post(self,request):
+        if not request.user.is_staff:
+            return Response(
+                {"error":"Only admin can create tasks"},
+                            status=status.HTTP_403_FORBIDDEN
+                            )
         serializer = TaskSerializer(data=request.data)
         
         if serializer.is_valid():
@@ -76,6 +83,7 @@ class TaskListCreateAPIView(APIView):
 
 
 class TaskDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get_object(self,pk):
         try:
             return Task.objects.get(pk=pk)
@@ -93,6 +101,9 @@ class TaskDetailAPIView(APIView):
         return Response(serilizer.data)
     
     def put(self,request,pk):
+        if not request.user.is_staff:
+            return Response({"error":"only admin can edit task"},status=status.HTTP_403_FORBIDDEN)
+
         task = self.get_object(pk)
 
         if not task:
@@ -110,6 +121,8 @@ class TaskDetailAPIView(APIView):
             
     
     def delete(self,request,pk):
+        if not request.user.is_staff:
+            return Response({"error":"only admin can delete task"},status=status.HTTP_403_FORBIDDEN)
         task = self.get_object(pk)
         if not task:
             return  Response(
@@ -138,3 +151,48 @@ class TestAPIView(APIView):
             request.user.username
 
         })
+    
+
+
+class TaskStatusAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+
+        task = Task.objects.filter(pk=pk).first()
+
+        if not task:
+
+            return Response(
+                {
+                    "error":
+                    "Task not found"
+                },
+                status=404
+            )
+
+        status_value = request.data.get('status')
+
+        if not status_value:
+
+            return Response(
+                {
+                    "error":
+                    "Status required"
+                },
+                status=400
+            )
+
+        task.status = status_value
+
+        task.save()
+
+        return Response(
+            {
+                "message":
+                "Status updated",
+
+                "status":
+                task.status
+            }
+        )
