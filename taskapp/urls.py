@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import TaskListCreateAPIView,TaskDetailAPIView,TestAPIView,TaskStatusAPIView,CommentListCreateAPIView,CommentDetailAPIView,TaskCommentAPIView,TaskReorderAPIView
+from .views import TaskListCreateAPIView,TaskDetailAPIView,TestAPIView,TaskStatusAPIView,CommentListCreateAPIView,CommentDetailAPIView,TaskCommentAPIView,TaskReorderAPIView,ExportExcelAPIView,ExportPDFAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 
 urlpatterns = [
@@ -15,4 +15,7 @@ urlpatterns = [
     path('comments/<int:pk>/',CommentDetailAPIView.as_view(),name='comment-detail'),
     path('tasks/<int:task_id>/comments/',TaskCommentAPIView.as_view(),name='task-comments'),
     path('tasks/reorder/',TaskReorderAPIView.as_view(),name='task-reorder'),
+    path('export/pdf/',ExportPDFAPIView.as_view(),name='export-pdf'),
+
+    path('export/excel/',ExportExcelAPIView.as_view(),name='export-excel'),
 ]

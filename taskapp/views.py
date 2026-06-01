@@ -7,7 +7,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.core.paginator import Paginator
 from django.db.models import Q
-from rest_framework.permissions import IsAuthenticated
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+import openpyxl
 
 # Create your views here.
 
@@ -374,3 +376,152 @@ class TaskReorderAPIView(APIView):
                 "message":
                 "Order updated successfully"
             })
+    
+
+class ExportPDFAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request):
+        if not request.user.is_staff:
+
+            return Response(
+                {
+                    "error":
+                    "Admin only"
+                },
+                status=403
+            )
+
+        response = HttpResponse(
+            content_type='application/pdf'
+        )
+
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename="tasks.pdf"'
+
+        pdf = canvas.Canvas(
+            response
+        )
+
+        pdf.setFont(
+            "Helvetica-Bold",
+            16
+        )
+
+        pdf.drawString(
+            220,
+            800,
+            "Task Report"
+        )
+
+        tasks = Task.objects.order_by(
+            'position'
+        )
+
+        y = 760
+
+        for task in tasks:
+
+            pdf.drawString(
+                50,
+                y,
+                f"{task.code}"
+            )
+
+            pdf.drawString(
+                120,
+                y,
+                task.name
+            )
+
+            pdf.drawString(
+                300,
+                y,
+                task.priority
+            )
+
+            pdf.drawString(
+                400,
+                y,
+                task.status
+            )
+
+            y -= 25
+
+        pdf.save()
+
+        return response
+    
+
+
+class ExportExcelAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request):
+        if not request.user.is_staff:
+
+            return Response(
+                {
+                    "error":
+                    "Admin only"
+                },
+                status=403
+            )
+
+        workbook = openpyxl.Workbook()
+
+        sheet = workbook.active
+
+        sheet.title = "Tasks"
+
+        sheet.append([
+
+            "Code",
+            "Name",
+            "Priority",
+            "Status",
+            "Due Date"
+
+        ])
+
+        tasks = Task.objects.order_by(
+            'position'
+        )
+
+        for task in tasks:
+
+            sheet.append([
+
+                task.code,
+
+                task.name,
+
+                task.priority,
+
+                task.status,
+
+                str(task.due_date)
+
+            ])
+
+        response = HttpResponse(
+            content_type=
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename="tasks.xlsx"'
+
+        workbook.save(
+            response
+        )
+
+        return response
