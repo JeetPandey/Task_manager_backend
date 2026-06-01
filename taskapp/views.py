@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.paginator import Paginator
 from django.db.models import Q
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
@@ -122,3 +123,18 @@ class TaskDetailAPIView(APIView):
         
 
 
+#creating the temporary view for testing the jwt authentication
+class TestAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request):
+
+        return Response({
+
+            "username":
+            request.user.username
+
+        })
