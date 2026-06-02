@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import TaskListCreateAPIView,TaskDetailAPIView,TestAPIView,TaskStatusAPIView,CommentListCreateAPIView,CommentDetailAPIView,TaskCommentAPIView,TaskReorderAPIView,ExportExcelAPIView,ExportPDFAPIView
+from .views import TaskListCreateAPIView,TaskDetailAPIView,TestAPIView,TaskStatusAPIView,CommentListCreateAPIView,CommentDetailAPIView,TaskCommentAPIView,TaskReorderAPIView,ExportExcelAPIView,ExportPDFAPIView,UserProfileAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 
 urlpatterns = [
@@ -18,4 +18,5 @@ urlpatterns = [
     path('export/pdf/',ExportPDFAPIView.as_view(),name='export-pdf'),
 
     path('export/excel/',ExportExcelAPIView.as_view(),name='export-excel'),
+    path("profile/",UserProfileAPIView.as_view(),name="profile"),
 ]
