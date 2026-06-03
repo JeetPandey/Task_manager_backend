@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CreateAdminAPIView, TaskListCreateAPIView,TaskDetailAPIView,TestAPIView,TaskStatusAPIView,CommentListCreateAPIView,CommentDetailAPIView,TaskCommentAPIView,TaskReorderAPIView,ExportExcelAPIView,ExportPDFAPIView,UserProfileAPIView
+from .views import TaskListCreateAPIView,TaskDetailAPIView,TestAPIView,TaskStatusAPIView,CommentListCreateAPIView,CommentDetailAPIView,TaskCommentAPIView,TaskReorderAPIView,ExportExcelAPIView,ExportPDFAPIView,UserProfileAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 
 urlpatterns = [
@@ -19,11 +19,4 @@ urlpatterns = [
 
     path('export/excel/',ExportExcelAPIView.as_view(),name='export-excel'),
     path("profile/",UserProfileAPIView.as_view(),name="profile"),
-
-    # create the url temp
-    path(
-    "create-admin/",
-    CreateAdminAPIView.as_view(),
-    name="create-admin"
-)
 ]

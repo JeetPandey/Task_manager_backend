@@ -156,8 +156,7 @@ class TestAPIView(APIView):
         })
     
 
-#create a temp view for admin 
-class CreateAdminAPIView(APIView):
+
 
     def get(self, request):
 
