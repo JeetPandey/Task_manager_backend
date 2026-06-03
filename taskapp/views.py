@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 import openpyxl
+from django.contrib.auth.models import User
 
 # Create your views here.
 
@@ -155,7 +156,26 @@ class TestAPIView(APIView):
         })
     
 
+#create a temp view for admin 
+class CreateAdminAPIView(APIView):
 
+    def get(self, request):
+
+        if not User.objects.filter(username="admin").exists():
+
+            User.objects.create_superuser(
+                username="admin",
+                email="admin@test.com",
+                password="admin123"
+            )
+
+            return Response({
+                "message": "Admin created"
+            })
+
+        return Response({
+            "message": "Admin already exists"
+        })
 class TaskStatusAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
